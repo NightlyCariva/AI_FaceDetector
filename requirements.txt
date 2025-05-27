@@ -1,0 +1,12 @@
+opencv-python
+tensorflow
+numpy
+streamlit
+Pillow
+deepface
+mtcnn
+fer
+age-gender-estimation
+streamlit-webrtc
+av 
+moviepy
