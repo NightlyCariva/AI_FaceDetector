@@ -126,10 +126,10 @@ streamlit run app_mode2.py --server.port 8503
 - ✅ **Privacy by Design** - Protection intégrée dès la conception
 
 ### Articles RGPD Concernés
-- **Article 6** : Base légale du traitement
-- **Article 9** : Catégories particulières de données
-- **Article 13-14** : Information des personnes concernées
-- **Article 25** : Protection des données dès la conception
+- **Article 6** : Licéité du traitement
+- **Article 9** : Traitement portant sur des catégories particulières de données à caractère personnel
+- **Article 13-14** : Informations à fournir lorsque des données à caractère personnel sont collectées auprès de la personne concernée
+- **Article 25** : Protection des données dès la conception et protection des données par défaut
 
 ## 📊 Structure du Projet
 
@@ -153,20 +153,6 @@ Ce projet permet de :
 - 📋 **Documenter** les traitements de données
 - 🔍 **Analyser** les risques liés aux données biométriques
 - 💡 **Sensibiliser** aux enjeux éthiques de l'IA
-
-## ⚡ Performance et Optimisation
-
-### Recommandations Système
-- **CPU** : Intel i5 ou équivalent AMD (minimum)
-- **RAM** : 8GB recommandé (4GB minimum)
-- **GPU** : Optionnel, améliore les performances
-- **Webcam** : 720p minimum pour le mode temps réel
-
-### Optimisations Implémentées
-- Cache des modèles ML pour éviter les rechargements
-- Traitement adaptatif selon les performances
-- Réduction automatique de résolution si nécessaire
-- Limitation de l'historique pour économiser la mémoire
 
 ## 🐛 Dépannage
 
@@ -200,37 +186,6 @@ Ce projet est destiné à des fins **éducatives uniquement**.
 - ❌ **Pas de surveillance** sans consentement
 - ❌ **Pas de stockage** de données biométriques sans base légale
 - ✅ **Utilisation pédagogique** et recherche autorisée
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Veuillez :
-1. Fork le projet
-2. Créer une branche pour votre fonctionnalité
-3. Commiter vos changements
-4. Pousser vers la branche
-5. Ouvrir une Pull Request
-
-## 📞 Support
-
-Pour toute question ou problème :
-- Ouvrez une **issue** sur GitHub
-- Consultez la **documentation** dans le code
-- Vérifiez les **logs** de l'application
-
-## 🔮 Développements Futurs
-
-### Fonctionnalités Prévues
-- 🔐 **Chiffrement** des données sensibles
-- 📋 **Audit trail** des traitements
-- 🎛️ **Paramètres de confidentialité** avancés
-- 📊 **Rapports de conformité** RGPD
-- 🌐 **Support multilingue**
-
-### Améliorations Techniques
-- ⚡ **Optimisation GPU** pour de meilleures performances
-- 🔄 **Traitement par batch** pour les grandes vidéos
-- 📱 **Application mobile** native
-- ☁️ **Déploiement cloud** sécurisé
 
 ---
 

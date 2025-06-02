@@ -3,7 +3,6 @@ import subprocess
 import sys
 import os
 
-# Configuration de la page
 st.set_page_config(
     page_title="Analyseur de Visages - Protection des Données",
     page_icon="🎭",
@@ -11,7 +10,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS personnalisé
 st.markdown("""
 <style>
     .main-header {
@@ -74,7 +72,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def main():
-    # Titre principal avec animation
     st.markdown('<h1 class="main-header">🎭 Analyseur de Visages IA</h1>', unsafe_allow_html=True)
     st.markdown('<p style="text-align: center; font-size: 1.2rem; color: #666;">Projet de Démonstration - Protection des Données</p>', unsafe_allow_html=True)
     
@@ -86,7 +83,6 @@ def main():
         <p>Selon le Règlement Général sur la Protection des Données (RGPD), les données biométriques 
         sont considérées comme des <strong>données à caractère personnel de catégorie particulière</strong> 
         (Article 9 du RGPD).</p>
-        
         <h4>Avant d'utiliser cette application :</h4>
         <ul>
             <li>✅ Assurez-vous d'avoir le <strong>consentement explicite</strong> de toutes les personnes filmées</li>
@@ -126,13 +122,12 @@ def main():
         st.header("⚖️ Conformité RGPD")
         st.markdown("""
         **Articles concernés :**
-        - Art. 6 : Base légale
-        - Art. 9 : Catégories particulières
-        - Art. 13-14 : Information
-        - Art. 25 : Privacy by design
+        - Art. 6 : Licéité du traitement
+        - Art. 9 : Traitement portant sur des catégories particulières de données à caractère personnel
+        - Art. 13-14: Informations à fournir lorsque des données à caractère personnel sont collectées auprès de la personne concernée
+        - Art. 25 : Protection des données dès la conception et protection des données par défaut
         """)
     
-    # Contenu principal selon le mode sélectionné
     if mode == "🏠 Accueil":
         show_home_page()
     elif mode == "📤 Mode 1: Upload Vidéo":
@@ -182,7 +177,6 @@ def show_home_page():
     </div>
     """, unsafe_allow_html=True)
     
-    # Modes disponibles
     st.markdown("## 🎛️ Modes Disponibles")
     
     col1, col2 = st.columns(2)
@@ -215,22 +209,18 @@ def show_home_page():
         </div>
         """, unsafe_allow_html=True)
     
-    # Section RGPD détaillée
     st.markdown("""
     <div class="gdpr-section">
         <h2>🔒 Enjeux de Protection des Données</h2>
-        
         <h3>Pourquoi ce projet ?</h3>
         <p>L'Intelligence Artificielle soulève de nombreuses questions en matière de protection des données, 
         particulièrement quand elle traite des <strong>données biométriques</strong>. Ce projet permet de :</p>
-        
         <ul>
             <li>🎓 <strong>Comprendre</strong> les implications du RGPD dans l'IA</li>
             <li>⚖️ <strong>Identifier</strong> les données sensibles collectées</li>
             <li>🛡️ <strong>Appliquer</strong> les principes de privacy by design</li>
             <li>📋 <strong>Documenter</strong> les traitements de données</li>
         </ul>
-        
         <h3>Données Sensibles Traitées</h3>
         <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 10px; margin: 1rem 0;">
             <p><strong>Article 9 RGPD - Catégories particulières :</strong></p>
@@ -241,7 +231,6 @@ def show_home_page():
                 <li>🧠 <strong>État psychologique</strong> (émotions)</li>
             </ul>
         </div>
-        
         <h3>Mesures de Protection Implémentées</h3>
         <ul>
             <li>✅ <strong>Traitement local</strong> - Aucune donnée envoyée vers des serveurs externes</li>
@@ -252,34 +241,7 @@ def show_home_page():
         </ul>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Instructions d'installation
-    st.markdown("## 🛠️ Installation et Utilisation")
-    
-    with st.expander("📦 Instructions d'Installation"):
-        st.markdown("""
-        ### Prérequis
-        - Python 3.8 ou supérieur
-        - Webcam (pour le mode temps réel)
-        
-        ### Installation
-        ```bash
-        # Cloner le projet
-        git clone [URL_DU_PROJET]
-        cd protection-donnees-ia
-        
-        # Installer les dépendances
-        pip install -r requirements.txt
-        
-        # Lancer l'application
-        streamlit run main_app.py
-        ```
-        
-        ### Utilisation
-        1. Choisissez un mode dans la barre latérale
-        2. Suivez les instructions spécifiques à chaque mode
-        3. Consultez les résultats et rapports générés
-        """)
+
 
 def show_mode1_info():
     """Affiche les informations et lance le mode 1"""
