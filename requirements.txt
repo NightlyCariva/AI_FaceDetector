@@ -10,3 +10,4 @@ age-gender-estimation
 streamlit-webrtc
 av 
 moviepy
+streamlit-autorefresh
