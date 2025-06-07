@@ -50,29 +50,12 @@ st.markdown("""
 
 def main():
     # Titre principal
-    st.markdown('<h1 class="main-header">🎭 Analyseur de Visages - Protection des Données</h1>', unsafe_allow_html=True)
-    
-    # Avertissement sur la protection des données
-    st.markdown("""
-    <div class="warning-box">
-        <h3>⚠️ Avertissement - Protection des Données</h3>
-        <p>Cette application analyse les caractéristiques biométriques des visages (âge, sexe, ethnie, émotions). 
-        Ces données sont considérées comme sensibles selon le RGPD. Assurez-vous d'avoir le consentement 
-        approprié avant d'analyser des vidéos contenant des personnes.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🎭 Analyseur de Visages</h1>', unsafe_allow_html=True)
     
     # Sidebar avec informations
     with st.sidebar:
         st.header("📋 Informations")
         st.markdown("""
-        **Fonctionnalités détectées :**
-        - 👤 Détection de visages
-        - 🎂 Estimation d'âge
-        - ⚧️ Classification du genre
-        - 🌍 Estimation de l'ethnie
-        - 😊 Reconnaissance d'émotions
-        
         **Formats supportés :**
         - MP4, AVI, MOV, MKV
         - Résolution max : 1920x1080
@@ -275,28 +258,7 @@ def display_results():
     else:
         st.warning("⚠️ Aucun visage détecté dans la vidéo.")
     
-    # Considérations sur la protection des données
-    st.markdown("### 🔒 Considérations RGPD")
-    st.markdown("""
-    <div class="warning-box">
-        <h4>Données collectées :</h4>
-        <ul>
-            <li>🎂 <strong>Âge estimé</strong> - Donnée biométrique sensible</li>
-            <li>⚧️ <strong>Genre</strong> - Donnée personnelle sensible</li>
-            <li>🌍 <strong>Origine ethnique</strong> - Donnée sensible selon RGPD Art. 9</li>
-            <li>😊 <strong>État émotionnel</strong> - Donnée biométrique</li>
-        </ul>
-        
-        <h4>Recommandations :</h4>
-        <ul>
-            <li>✅ Obtenir un consentement explicite</li>
-            <li>✅ Informer sur la finalité du traitement</li>
-            <li>✅ Limiter la conservation des données</li>
-            <li>✅ Assurer la sécurité des données</li>
-            <li>✅ Permettre l'exercice des droits (accès, rectification, effacement)</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     main() 
