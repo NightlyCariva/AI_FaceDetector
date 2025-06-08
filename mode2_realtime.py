@@ -203,7 +203,7 @@ def run_mode2():
         
         # Traitement de la caméra si active
         if st.session_state.camera_running and st.session_state.video_capture:
-            col_refresh, col_auto = st.columns(2)
+            col_refresh, col_auto, col_detect = st.columns(3)
             
             with col_refresh:
                 if st.button("Actualiser Image"):
@@ -215,20 +215,27 @@ def run_mode2():
                             st.error("Échec actualisation")
             
             with col_auto:
-                auto_refresh = st.checkbox("Auto-actualisation", value=False)
+                auto_refresh = st.checkbox("Auto-actualisation", value=True)
             
-            # Afficher la frame actuelle
-            ret, frame = st.session_state.video_capture.read()
-            if ret and frame is not None:
-                # Traitement simple sans détection pour éviter le blocage
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                video_placeholder.image(frame_rgb, caption="DroidCam", width=640)
-            else:
-                video_placeholder.error("Pas d'image disponible")
+            with col_detect:
+                if st.button("🔍 Forcer Détection"):
+                    # Forcer une nouvelle détection en réinitialisant le compteur
+                    st.session_state.frame_count = 0
+                    st.success("Détection forcée")
+            
+            # Traiter la frame avec détection des visages
+            process_camera_frame(
+                video_placeholder, 
+                analyze_age, 
+                analyze_gender, 
+                analyze_emotion, 
+                analyze_ethnicity, 
+                detection_interval
+            )
             
             # Auto-actualisation non-bloquante
             if auto_refresh:
-                time.sleep(1)
+                time.sleep(0.5)  # Réduire le délai pour plus de fluidité
                 st.rerun()
         else:
             video_placeholder.info("Cliquez sur 'Démarrer Caméra' pour commencer")
@@ -327,6 +334,13 @@ def start_camera(camera_source, camera_id, droidcam_url, use_gpu, detection_inte
         detector = FaceDetector(use_gpu=use_gpu)
         detector.detection_interval = detection_interval
         
+        # Test du détecteur
+        console_output += "Test du détecteur de visages...\n"
+        if detector.face_cascade.empty():
+            console_output += "ATTENTION: Classificateur de visages non chargé!\n"
+        else:
+            console_output += "Classificateur de visages chargé avec succès\n"
+        
         st.session_state.video_capture = cap
         st.session_state.face_detector = detector
         st.session_state.camera_running = True
@@ -336,6 +350,7 @@ def start_camera(camera_source, camera_id, droidcam_url, use_gpu, detection_inte
         console_output += f"Résolution: 640x480\n"
         console_output += f"Détecteur initialisé (GPU: {use_gpu})\n"
         console_output += f"Intervalle détection: {detection_interval} frames\n"
+        console_output += f"Mode temps réel: détection forcée toutes les 5 frames max\n"
         
         st.success("Caméra démarrée avec succès!")
         
@@ -378,12 +393,15 @@ def process_camera_frame(placeholder, analyze_age, analyze_gender, analyze_emoti
         return
     
     try:
+        # Pour DroidCam, actualiser la frame avant de la lire
+        if hasattr(st.session_state.video_capture, 'refresh_frame'):
+            st.session_state.video_capture.refresh_frame()
+        
         # Capturer une frame
         ret, frame = st.session_state.video_capture.read()
         
         if not ret or frame is None:
-            print("Pas de frame disponible")
-            # Ne pas arrêter la caméra, juste passer cette frame
+            placeholder.error("Pas de frame disponible")
             return
         
         # Traiter la frame avec le détecteur
@@ -392,11 +410,19 @@ def process_camera_frame(placeholder, analyze_age, analyze_gender, analyze_emoti
             timestamp = datetime.now().strftime("%H:%M:%S")
             frame_count = st.session_state.get('frame_count', 0)
             
+            # Pour le mode temps réel, forcer la détection plus souvent
+            # Réduire l'intervalle de détection pour plus de réactivité
+            original_interval = detector.detection_interval
+            detector.detection_interval = min(5, detection_interval)  # Maximum 5 frames d'intervalle
+            
             # Traitement avec tracking
             detections = detector.process_frame_with_tracking(
                 frame, frame_count, timestamp,
                 analyze_age, analyze_gender, analyze_emotion, analyze_ethnicity
             )
+            
+            # Restaurer l'intervalle original
+            detector.detection_interval = original_interval
             
             # Sauvegarder les détections
             if detections:
@@ -420,7 +446,16 @@ def process_camera_frame(placeholder, analyze_age, analyze_gender, analyze_emoti
             cv2.putText(annotated_frame, f"Total: {len(st.session_state.realtime_detections)}", (10, 90), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
             
+            # Afficher le statut de détection
+            detection_status = "DETECTION ACTIVE" if frame_count % detector.detection_interval == 0 else "TRACKING"
+            cv2.putText(annotated_frame, detection_status, (10, 120), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+            
             st.session_state.frame_count = frame_count + 1
+            
+            # Mettre à jour les logs de console
+            if detections and 'console_output_rt' in st.session_state:
+                st.session_state.console_output_rt += f"[{timestamp}] {len(detections)} visage(s) détecté(s)\n"
             
         else:
             annotated_frame = frame
@@ -433,7 +468,7 @@ def process_camera_frame(placeholder, analyze_age, analyze_gender, analyze_emoti
         placeholder.image(image, caption="Flux caméra en temps réel", width=640)
         
     except Exception as e:
-        st.error(f"Erreur traitement frame: {str(e)}")
+        placeholder.error(f"Erreur traitement frame: {str(e)}")
         # Ajouter l'erreur aux logs
         if 'console_output_rt' in st.session_state:
             st.session_state.console_output_rt += f"\nErreur frame: {str(e)}\n"
