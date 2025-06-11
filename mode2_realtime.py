@@ -14,7 +14,7 @@ import urllib.request
 import socket
 
 class DroidCamCapture:
-    """Capture DroidCam non-bloquante"""
+    """Capture DroidCam non-bloquante (bugged)"""
     
     def __init__(self, url):
         self.url = url.strip()
@@ -27,7 +27,6 @@ class DroidCamCapture:
             response = requests.get(self.url, timeout=3)
             if response.status_code == 200 and len(response.content) > 1000:
                 self.is_opened = True
-                # Cache la première frame
                 nparr = np.frombuffer(response.content, np.uint8)
                 frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                 if frame is not None:
@@ -77,7 +76,6 @@ def run_mode2():
     st.title("Mode 2: Analyse en Temps Réel")
     st.markdown("---")
     
-    # Zone d'explication
     st.header("Fonctionnement")
     st.info("""
     Ce mode analyse en temps réel via votre webcam ou DroidCam. Configurez les paramètres d'analyse, 
@@ -87,11 +85,9 @@ def run_mode2():
     **Support caméras**: Webcam intégrée, USB, DroidCam via URL
     """)
     
-    # Colonnes principales
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Zone de paramètrage
         st.header("Paramètres")
         
         temperature = st.slider("Température", 0.0, 1.0, 0.5, 0.1, key="rt_temp")
@@ -115,7 +111,6 @@ def run_mode2():
             help="Fréquence de recherche de nouveaux visages"
         )
         
-        # Configuration caméra
         st.header("Configuration Caméra")
         
         camera_source = st.radio(
@@ -145,10 +140,8 @@ def run_mode2():
                 help="0=webcam par défaut, 1+=caméras USB"
             )
         
-        # Boutons de contrôle
         st.header("Contrôles")
         
-        # Gestion des états
         if 'camera_running' not in st.session_state:
             st.session_state.camera_running = False
         
@@ -175,13 +168,10 @@ def run_mode2():
                 st.rerun()
     
     with col2:
-        # Zone caméra et résultats
         st.header("Flux Vidéo en Temps Réel")
         
-        # Zone d'affichage vidéo
         video_placeholder = st.empty()
         
-        # Instructions DroidCam
         if camera_source == "DroidCam (URL)":
             st.info("""
             **Instructions DroidCam:**
@@ -196,7 +186,7 @@ def run_mode2():
             
             **Important:**
             - Vérifiez que le téléphone et PC sont sur le même réseau WiFi
-            - Testez l'URL dans votre navigateur d'abord (en utilisant le meme URL que celui que vous avez saisi)
+            - Testez l'URL dans votre navigateur d'abord
             """)
             
 
@@ -277,25 +267,20 @@ def start_camera(camera_source, camera_id, droidcam_url, use_gpu, detection_inte
     console_output += f"Source: {camera_source}\n"
     
     try:
-        # Déterminer la source vidéo
         if camera_source == "DroidCam (URL)" and droidcam_url:
-            # Utiliser directement l'URL DroidCam
             video_source = droidcam_url
             console_output += f"URL DroidCam: {droidcam_url}\n"
         else:
             video_source = int(camera_id)
             console_output += f"ID Caméra: {camera_id}\n"
         
-        # Initialiser la capture vidéo 
         if camera_source == "DroidCam (URL)":
             if not isinstance(video_source, str) or not video_source.strip():
                 raise Exception("URL DroidCam invalide ou vide")
             
-            # Utiliser directement l'URL fournie
             clean_url = video_source.replace('htpp://', 'http://').strip()
             console_output += f"Connexion DroidCam: {clean_url}\n"
             
-            # Test préliminaire direct
             console_output += "Test préliminaire de l'URL...\n"
             try:
                 test_response = requests.get(clean_url, timeout=10)
@@ -313,7 +298,6 @@ def start_camera(camera_source, camera_id, droidcam_url, use_gpu, detection_inte
             except Exception as e:
                 raise Exception(f"Erreur de test: {str(e)}")
             
-            # Si le test passe, créer la capture
             cap = DroidCamCapture(clean_url)
             if not cap.open():
                 raise Exception(f"Test OK mais capture échoue pour {clean_url}")
@@ -325,16 +309,13 @@ def start_camera(camera_source, camera_id, droidcam_url, use_gpu, detection_inte
             if not cap.isOpened():
                 raise Exception(f"Impossible d'ouvrir la source vidéo: {video_source}")
             
-            # Configurer la caméra (seulement pour les caméras locales)
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             cap.set(cv2.CAP_PROP_FPS, 30)
         
-        # Initialiser le détecteur
         detector = FaceDetector(use_gpu=use_gpu)
         detector.detection_interval = detection_interval
         
-        # Test du détecteur
         console_output += "Test du détecteur de visages...\n"
         if detector.face_cascade.empty():
             console_output += "ATTENTION: Classificateur de visages non chargé!\n"
@@ -393,52 +374,41 @@ def process_camera_frame(placeholder, analyze_age, analyze_gender, analyze_emoti
         return
     
     try:
-        # Pour DroidCam, actualiser la frame avant de la lire
         if hasattr(st.session_state.video_capture, 'refresh_frame'):
             st.session_state.video_capture.refresh_frame()
         
-        # Capturer une frame
         ret, frame = st.session_state.video_capture.read()
         
         if not ret or frame is None:
             placeholder.error("Pas de frame disponible")
             return
         
-        # Traiter la frame avec le détecteur
         if hasattr(st.session_state, 'face_detector'):
             detector = st.session_state.face_detector
             timestamp = datetime.now().strftime("%H:%M:%S")
             frame_count = st.session_state.get('frame_count', 0)
             
-            # Pour le mode temps réel, forcer la détection plus souvent
-            # Réduire l'intervalle de détection pour plus de réactivité
             original_interval = detector.detection_interval
-            detector.detection_interval = min(5, detection_interval)  # Maximum 5 frames d'intervalle
+            detector.detection_interval = min(5, detection_interval)
             
-            # Traitement avec tracking
             detections = detector.process_frame_with_tracking(
                 frame, frame_count, timestamp,
                 analyze_age, analyze_gender, analyze_emotion, analyze_ethnicity
             )
             
-            # Restaurer l'intervalle original
             detector.detection_interval = original_interval
             
-            # Sauvegarder les détections
             if detections:
                 st.session_state.realtime_detections.extend(detections)
                 
-                # Garder seulement les 100 dernières
                 if len(st.session_state.realtime_detections) > 100:
                     st.session_state.realtime_detections = st.session_state.realtime_detections[-100:]
             
-            # Annoter l'image
             annotated_frame = detector.draw_annotations(
                 frame, detections,
                 analyze_age, analyze_gender, analyze_emotion, analyze_ethnicity
             )
             
-            # Ajouter des informations sur l'image
             cv2.putText(annotated_frame, f"Frame: {frame_count}", (10, 30), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
             cv2.putText(annotated_frame, f"Visages: {len(detections)}", (10, 60), 
@@ -446,30 +416,25 @@ def process_camera_frame(placeholder, analyze_age, analyze_gender, analyze_emoti
             cv2.putText(annotated_frame, f"Total: {len(st.session_state.realtime_detections)}", (10, 90), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
             
-            # Afficher le statut de détection
             detection_status = "DETECTION ACTIVE" if frame_count % detector.detection_interval == 0 else "TRACKING"
             cv2.putText(annotated_frame, detection_status, (10, 120), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
             
             st.session_state.frame_count = frame_count + 1
             
-            # Mettre à jour les logs de console
             if detections and 'console_output_rt' in st.session_state:
                 st.session_state.console_output_rt += f"[{timestamp}] {len(detections)} visage(s) détecté(s)\n"
             
         else:
             annotated_frame = frame
         
-        # Convertir pour Streamlit
         frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
         image = Image.fromarray(frame_rgb)
         
-        # Afficher dans Streamlit
         placeholder.image(image, caption="Flux caméra en temps réel", width=640)
         
     except Exception as e:
         placeholder.error(f"Erreur traitement frame: {str(e)}")
-        # Ajouter l'erreur aux logs
         if 'console_output_rt' in st.session_state:
             st.session_state.console_output_rt += f"\nErreur frame: {str(e)}\n"
 
@@ -502,21 +467,17 @@ def display_realtime_stats():
         else:
             st.metric("Visages uniques", "0")
     
-    # Tableau des dernières détections
     if st.session_state.realtime_detections:
         st.subheader("Dernières Détections")
         
-        # Afficher les 10 dernières
         recent_detections = st.session_state.realtime_detections[-10:]
         
         if recent_detections:
             import pandas as pd
             df = pd.DataFrame(recent_detections)
-            # Supprimer la colonne bbox pour l'affichage
             display_df = df.drop('bbox', axis=1, errors='ignore')
             st.dataframe(display_df, use_container_width=True)
             
-            # Statistiques rapides
             if len(st.session_state.realtime_detections) >= 5:
                 all_df = pd.DataFrame(st.session_state.realtime_detections)
                 
@@ -545,7 +506,6 @@ def export_realtime_data():
         import pandas as pd
         df = pd.DataFrame(st.session_state.realtime_detections)
         
-        # Supprimer la colonne bbox pour l'export
         export_df = df.drop('bbox', axis=1, errors='ignore')
         csv_data = export_df.to_csv(index=False, sep=';')
         
@@ -562,7 +522,6 @@ def export_realtime_data():
         with col2:
             st.metric("Entrées à exporter", len(df))
         
-        # Aperçu des données
         st.write("**Aperçu des données:**")
         st.dataframe(export_df.head(), use_container_width=True)
     else:

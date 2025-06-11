@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script de lancement pour l'Analyseur de Visages IA
+Entry Point
 """
 
 import subprocess
@@ -11,25 +11,22 @@ def main():
     """Lance l'application Streamlit"""
     
     print("=" * 50)
-    print("   Analyseur de Visages IA")
+    print("   Face Detector")
     print("   Projet UPJV - Protection des Données")
     print("=" * 50)
     
     # Vérifier que Streamlit est installé
     try:
         import streamlit
-        print("✓ Streamlit détecté")
     except ImportError:
-        print("✗ Streamlit non trouvé. Installez les dépendances avec:")
-        print("  pip install -r requirements.txt")
+        print("Streamlit non trouvé. Installez les dépendances avec:")
+        print("utiliser la commande: pip install -r requirements.txt")
         sys.exit(1)
-    
-    # Vérifier que le fichier principal existe
+
     if not os.path.exists("main.py"):
-        print("✗ main.py non trouvé")
+        print("main.py non trouvé !")
         sys.exit(1)
     
-    print("✓ Fichier principal trouvé")
     print("\nLancement de l'application...")
     print("L'application sera accessible à: http://localhost:8501")
     print("\nAppuyez sur Ctrl+C pour arrêter\n")

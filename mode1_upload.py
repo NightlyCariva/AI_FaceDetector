@@ -14,7 +14,6 @@ def run_mode1():
     st.title("Mode 1: Analyse de Vidéo Uploadée")
     st.markdown("---")
     
-    # Zone d'explication
     st.header("Fonctionnement")
     st.info("""
     Ce mode permet d'analyser des vidéos pré-enregistrées. Uploadez votre fichier vidéo, 
@@ -22,11 +21,9 @@ def run_mode1():
     télécharger les résultats sous forme de CSV et la vidéo annotée.
     """)
     
-    # Colonnes principales
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Zone de paramètrage
         st.header("Paramètres")
         
         temperature = st.slider("Température", 0.0, 1.0, 0.5, 0.1)
@@ -49,7 +46,6 @@ def run_mode1():
             help="Fréquence de recherche de nouveaux visages (plus élevé = plus rapide)"
         )
         
-        # Zone upload vidéo
         st.header("Upload Vidéo")
         uploaded_file = st.file_uploader(
             "Choisissez un fichier vidéo",
@@ -75,11 +71,9 @@ def run_mode1():
                 )
     
     with col2:
-        # Zone Résultats
         st.header("Résultats")
         
         if 'video_results' in st.session_state:
-            # Bouton pour effacer les résultats
             if st.button("🗑️ Effacer les résultats", key="clear_results"):
                 del st.session_state.video_results
                 if 'console_output' in st.session_state:
@@ -90,7 +84,6 @@ def run_mode1():
         else:
             st.info("Uploadez une vidéo et lancez l'analyse pour voir les résultats ici.")
     
-    # Zone Console (pleine largeur)
     st.markdown("---")
     st.header("Console")
     
@@ -113,7 +106,6 @@ def process_video(uploaded_file, temperature, analyze_age, analyze_gender,
                  analyze_emotion, analyze_ethnicity, use_gpu, detection_interval):
     """Traite la vidéo uploadée"""
     
-    # Initialiser la capture de console
     console_output = io.StringIO()
     
     try:
@@ -123,25 +115,21 @@ def process_video(uploaded_file, temperature, analyze_age, analyze_gender,
             print(f"Paramètres: Age={analyze_age}, Genre={analyze_gender}, Emotion={analyze_emotion}, Ethnie={analyze_ethnicity}")
             print(f"GPU: {use_gpu}")
             
-            # Créer un fichier temporaire
             with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_file:
                 tmp_file.write(uploaded_file.read())
                 input_path = tmp_file.name
             
             print(f"Fichier temporaire créé: {input_path}")
             
-            # Initialiser le détecteur
             detector = FaceDetector(use_gpu=use_gpu)
             detector.detection_interval = detection_interval
             print("Détecteur initialisé")
             print(f"Intervalle de détection configuré: {detection_interval} frames")
             
-            # Ouvrir la vidéo
             cap = cv2.VideoCapture(input_path)
             if not cap.isOpened():
                 raise Exception("Impossible d'ouvrir la vidéo")
             
-            # Propriétés de la vidéo
             fps = cap.get(cv2.CAP_PROP_FPS)
             total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -149,15 +137,13 @@ def process_video(uploaded_file, temperature, analyze_age, analyze_gender,
             
             print(f"Vidéo: {total_frames} frames, {fps} FPS, {width}x{height}")
             
-            # Créer le fichier de sortie
             output_path = tempfile.mktemp(suffix='_analyzed.mp4')
-            fourcc = cv2.VideoWriter.fourcc(*'mp4v')  # type: ignore
+            fourcc = cv2.VideoWriter.fourcc(*'mp4v')
             out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
             
             print("Début de l'analyse avec système de tracking...")
             print(f"Détection de nouveaux visages toutes les {detector.detection_interval} frames")
             
-            # Barre de progression
             progress_bar = st.progress(0)
             status_text = st.empty()
             
@@ -169,10 +155,8 @@ def process_video(uploaded_file, temperature, analyze_age, analyze_gender,
                 if not ret:
                     break
                 
-                # Calculer le timestamp
                 timestamp = f"{int(frame_count // fps // 3600):02d}:{int((frame_count // fps) % 3600 // 60):02d}:{int(frame_count // fps % 60):02d}"
                 
-                # Traiter la frame avec le système de tracking
                 detections = detector.process_frame_with_tracking(
                     frame, frame_count, timestamp,
                     analyze_age, analyze_gender, analyze_emotion, analyze_ethnicity
@@ -182,33 +166,27 @@ def process_video(uploaded_file, temperature, analyze_age, analyze_gender,
                     all_detections.extend(detections)
                     detector.detections.extend(detections)
                     
-                    # Afficher les logs seulement quand il y a de nouveaux visages
                     if frame_count % detector.detection_interval == 0:
                         print(f"Frame {frame_count}: {len(detections)} visage(s) tracké(s)")
                 
-                # Annoter la frame avec tous les visages trackés
                 annotated_frame = detector.draw_annotations(
                     frame, detections,
                     analyze_age, analyze_gender, analyze_emotion, analyze_ethnicity
                 )
                 
-                # Écrire la frame
                 out.write(annotated_frame)
                 
                 frame_count += 1
                 
-                # Mise à jour de la progression
                 progress = (frame_count / total_frames)
                 progress_bar.progress(progress)
                 status_text.text(f"Traitement: {frame_count}/{total_frames} frames")
             
-            # Nettoyer
             cap.release()
             out.release()
             
             print(f"Analyse terminée. {len(all_detections)} détections au total")
             
-            # Sauvegarder les résultats
             st.session_state.video_results = {
                 'detections': all_detections,
                 'detector': detector,
@@ -221,10 +199,8 @@ def process_video(uploaded_file, temperature, analyze_age, analyze_gender,
             print("Résultats sauvegardés")
             print("=== TRAITEMENT TERMINÉ ===")
             
-            # Afficher un message de succès
             st.success("✅ Analyse terminée avec succès ! Consultez les résultats ci-dessous.")
             
-            # Nettoyer le fichier temporaire d'entrée
             os.unlink(input_path)
             
     except Exception as e:
@@ -232,9 +208,7 @@ def process_video(uploaded_file, temperature, analyze_age, analyze_gender,
         st.error(f"Erreur lors du traitement: {str(e)}")
     
     finally:
-        # Sauvegarder la sortie console
         st.session_state.console_output = console_output.getvalue()
-        # Ne pas relancer automatiquement
 
 def display_results():
     """Affiche les résultats de l'analyse"""
@@ -242,7 +216,6 @@ def display_results():
     detections = results['detections']
     detector = results['detector']
     
-    # Statistiques générales
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -261,19 +234,15 @@ def display_results():
         else:
             st.metric("Statut", "🔄 En cours")
     
-    # Tableau des détections
     if detections:
         df = detector.get_detections_dataframe()
         
-        # Supprimer la colonne bbox pour l'affichage
         display_df = df.drop('bbox', axis=1, errors='ignore')
         st.dataframe(display_df, use_container_width=True)
         
-        # Boutons d'export
         col1, col2 = st.columns(2)
         
         with col1:
-            # Export CSV
             csv_data = display_df.to_csv(index=False, sep=';')
             st.download_button(
                 label="Télécharger CSV",
@@ -283,7 +252,6 @@ def display_results():
             )
         
         with col2:
-            # Export vidéo annotée
             if os.path.exists(results['output_video_path']):
                 with open(results['output_video_path'], 'rb') as f:
                     st.download_button(
